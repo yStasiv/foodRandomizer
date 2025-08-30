@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+.env
+# VSCode
+.vscode/
+# Images
+images/
+# Node
+node_modules/
+# OS
+.DS_Store
+Thumbs.db
+# Git
+.git/
+# Workflows
+.github/
