@@ -1,3 +1,26 @@
+/* Анімація появи страви (ефект перемішування карт) */
+.dish-animate {
+  animation: dishShuffle 0.7s cubic-bezier(.68,-0.55,.27,1.55);
+}
+
+@keyframes dishShuffle {
+  0% {
+    opacity: 0;
+    transform: scale(0.7) rotateY(0deg);
+  }
+  40% {
+    opacity: 0.5;
+    transform: scale(1.1) rotateY(180deg);
+  }
+  70% {
+    opacity: 0.7;
+    transform: scale(0.95) rotateY(270deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotateY(360deg);
+  }
+}
 .comments-centered {
   display: flex;
   flex-direction: column;

@@ -204,6 +204,10 @@ def send_email_notification(name, email, comment):
         server.quit()
     except Exception as e:
         print('Email send error:', e)
+        
+@app.get("/favicon.svg")
+async def favicon():
+    return FileResponse(os.path.join(os.path.dirname(__file__), "favicon.svg"))
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

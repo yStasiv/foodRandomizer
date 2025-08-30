@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Food Planner</title>
-<link rel="stylesheet" href="/static/style.css"></head>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+</head>
 <body>
   <div class="container">
     <div class="tabs">
@@ -66,7 +68,8 @@
         if (!img.startsWith('/images/')) img = '/images/' + img.replace(/^\/+/, '');
         imgHtml = `<img src="${img}" alt="Зображення" style="max-width:300px;display:block;margin-bottom:10px;">`;
       }
-      box.innerHTML = `<h2>${dish.name}</h2>${imgHtml}<p><b>Калорії:</b> ${dish.calories}</p><p><b>Рецепт:</b> ${dish.recipe}</p>`;
+      const dishHtml = `<h2>${dish.name}</h2>${imgHtml}<p><b>Калорії:</b> ${dish.calories}</p><p><b>Рецепт:</b> ${dish.recipe}</p>`;
+      box.innerHTML = `<div class="dish-animate">${dishHtml}</div>`;
     };
 
     renderCategoryButtons();
