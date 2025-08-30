@@ -7,6 +7,8 @@
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 </head>
 <body>
+  <a href="/add" class="add-link">Додати страву</a>
+
   <div class="container">
     <div class="tabs">
       <a href="/" class="tab-btn active">Що поїсти</a>
@@ -21,8 +23,6 @@
     </div>
     <div id="randomDish"></div>
   </div>
-
-  <a href="/add" class="add-link">Додати страву</a>
 
   <script>
     const categories = [
@@ -53,10 +53,20 @@
       return res.ok ? await res.json() : [];
     }
 
+    function safeHtml(html) {
+      const allowed = /<(\/)?(table|tr|td|th|tbody|thead|tfoot|b|i|u|br|pre)>/gi;
+      return html
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(allowed, function(m) {
+          return m.replace('&lt;', '<').replace('&gt;', '>');
+        });
+    }
+
     document.getElementById('randomBtn').onclick = async function() {
       const dishes = await fetchDishes(selectedCategory);
       const box = document.getElementById('randomDish');
-      box.innerHTML = '';
       if (dishes.length === 0) {
         box.innerHTML = '<b>Немає страв у цій категорії.</b>';
         return;
@@ -66,9 +76,10 @@
       if (dish.image_url) {
         let img = dish.image_url;
         if (!img.startsWith('/images/')) img = '/images/' + img.replace(/^\/+/, '');
-        imgHtml = `<img src="${img}" alt="Зображення" style="max-width:300px;display:block;margin-bottom:10px;">`;
+        imgHtml = `<img src="${img}" alt="Зображення" style="max-width:300px;display:block;margin:18px auto;">`;
       }
-      const dishHtml = `<h2>${dish.name}</h2>${imgHtml}<p><b>Калорії:</b> ${dish.calories}</p><p><b>Рецепт:</b> ${dish.recipe}</p>`;
+      const recipeHtml = `<pre style='text-align:left;'>${safeHtml(dish.recipe)}</pre>`;
+      const dishHtml = `<h2>${dish.name}</h2>${imgHtml}<p><b>Калорії:</b> ${dish.calories}</p><b>Рецепт:</b> ${recipeHtml}`;
       box.innerHTML = `<div class="dish-animate">${dishHtml}</div>`;
     };
 

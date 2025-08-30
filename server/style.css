@@ -1,3 +1,26 @@
+/* Стилі для таблиці в рецепті */
+.recipe-table {
+  border-collapse: collapse;
+  margin: 18px auto;
+  width: 100%;
+  max-width: 500px;
+  background: #fafafa;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.recipe-table th, .recipe-table td {
+  border: 1px solid #ccc;
+  padding: 8px 12px;
+  text-align: center;
+}
+.recipe-table th {
+  background: #e8f6ef;
+  color: #2c3e50;
+  font-weight: bold;
+}
+.recipe-table tr:last-child td {
+  font-weight: bold;
+  background: #eafaf1;
+}
 /* Анімація появи страви (ефект перемішування карт) */
 .dish-animate {
   animation: dishShuffle 0.7s cubic-bezier(.68,-0.55,.27,1.55);
@@ -95,6 +118,9 @@ input, select, textarea {
   border-radius: 6px;
   border: 1px solid #ccc;
   box-sizing: border-box;
+}
+textarea {
+  text-align: left;
 }
 button {
   padding: 8px 20px;

@@ -76,6 +76,11 @@
       <div class="form-group">
         <label for="editRecipe">Рецепт</label>
         <textarea id="editRecipe" name="editRecipe" rows="3" required></textarea>
+      </div>
+      <div class="form-group">
+        <label for="editImageFile">Змінити зображення</label>
+        <input type="file" id="editImageFile" accept="image/*">
+      </div>
       <img id="editImage" src="" alt="Зображення страви" style="max-width:200px;display:none;margin-bottom:10px;">
       <button type="submit">Зберегти зміни</button>
       <button type="button" id="deleteBtn" style="background:#e74c3c;margin-left:10px;">Видалити</button>
@@ -182,6 +187,23 @@
       });
       const result = await res.json();
       document.getElementById('editMessage').textContent = result.message || result.detail;
+
+      // Якщо вибрано нове зображення, оновлюємо image_url
+      const fileInput = document.getElementById('editImageFile');
+      if (fileInput.files.length > 0) {
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        const imgRes = await fetch('/upload_image', {
+          method: 'POST',
+          body: formData
+        });
+        const imgResult = await imgRes.json();
+        await fetch(`/dishes/${category}/${id}/image`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image_url: imgResult.url })
+        });
+      }
       loadDishes();
     };
 
