@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Зворотній зв'язок | Food Planner</title>
+<link rel="stylesheet" href="/static/style.css"></head>
+<body>
+  <div class="container">
+    <div class="tabs">
+      <a href="/" class="tab-btn">Що поїсти</a>
+      <a href="#" class="tab-btn">Рекомендації</a>
+      <a href="/feedback" class="tab-btn active">Зворотній зв'язок</a>
+    </div>
+    <h1>Зворотній зв'язок</h1>
+    <form id="feedbackForm">
+      <div class="form-group">
+        <label for="name">Ім'я:</label>
+        <input type="text" id="name" name="name" required>
+      </div>
+      <div class="form-group">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email">
+      </div>
+      <div class="form-group">
+        <label for="comment">Коментар, пропозиція чи відгук:</label>
+        <textarea id="comment" name="comment" rows="4" required></textarea>
+      </div>
+      <button type="submit">Відправити</button>
+    </form>
+    <div class="message" id="message"></div>
+    <div id="commentsList" style="margin-top:40px;"></div>
+  <hr>
+  <div class="comments-centered" id="commentsList"></div>
+  <div class="contacts">
+      <h3>Контактна інформація</h3>
+      <p>Email: foodplanner@example.com</p>
+      <p>Телефон: +38 (099) 123-45-67</p>
+    </div>
+  </div>
+  <script>
+    async function fetchComments() {
+      const res = await fetch('/comments');
+      return res.ok ? await res.json() : [];
+    }
+
+    async function renderComments() {
+      const comments = await fetchComments();
+      const list = document.getElementById('commentsList');
+      if (comments.length === 0) {
+        list.innerHTML = '<i>Коментарів ще немає.</i>';
+        return;
+      }
+      list.innerHTML = '<h3>Всі коментарі</h3>' + comments.map(c =>
+        `<div style="border-bottom:1px solid #eee;padding:10px 0;">
+          <b>${c.name}</b> <span style="color:#888;">(${c.email})</span><br>
+          <span>${c.comment}</span>
+        </div>`
+      ).join('');
+    }
+
+    document.getElementById('feedbackForm').onsubmit = async function(e) {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const comment = document.getElementById('comment').value.trim();
+    //   if (!email) email = 'no-reply@example.com';
+
+      if (!name || !comment) return;
+      await fetch('/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, comment })
+      });
+      document.getElementById('message').textContent = 'Дякуємо за ваш відгук!';
+      document.getElementById('feedbackForm').reset();
+      renderComments();
+    };
+
+    renderComments();
+  </script>
+</body>
+</html>

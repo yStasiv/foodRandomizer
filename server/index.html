@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Food Planner</title>
+<link rel="stylesheet" href="/static/style.css"></head>
+<body>
+  <div class="container">
+    <div class="tabs">
+      <a href="/" class="tab-btn active">Що поїсти</a>
+      <a href="#" class="tab-btn">Рекомендації</a>
+      <a href="/feedback" class="tab-btn">Зворотній зв'язок</a>
+    </div>
+    <h1>Food Planner</h1>
+    <div>
+      <b>Оберіть категорію:</b>
+      <div id="categoryBtns"></div>
+      <button id="randomBtn">Що поїсти?</button>
+    </div>
+    <div id="randomDish"></div>
+  </div>
+
+  <a href="/add" class="add-link">Додати страву</a>
+
+  <script>
+    const categories = [
+      { key: 'breakfasts', name: 'Сніданки' },
+      { key: 'lunches', name: 'Обіди' },
+      { key: 'dinners', name: 'Вечері' },
+      { key: 'snacks', name: 'Перекуси' }
+    ];
+    let selectedCategory = categories[0].key;
+
+    function renderCategoryButtons() {
+      const container = document.getElementById('categoryBtns');
+      container.innerHTML = '';
+      categories.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.textContent = cat.name;
+        btn.className = 'tab-btn' + (cat.key === selectedCategory ? ' active' : '');
+        btn.onclick = function() {
+          selectedCategory = cat.key;
+          renderCategoryButtons();
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    async function fetchDishes(category) {
+      const res = await fetch(`/dishes/${category}`);
+      return res.ok ? await res.json() : [];
+    }
+
+    document.getElementById('randomBtn').onclick = async function() {
+      const dishes = await fetchDishes(selectedCategory);
+      const box = document.getElementById('randomDish');
+      box.innerHTML = '';
+      if (dishes.length === 0) {
+        box.innerHTML = '<b>Немає страв у цій категорії.</b>';
+        return;
+      }
+      const dish = dishes[Math.floor(Math.random() * dishes.length)];
+      let imgHtml = '';
+      if (dish.image_url) {
+        let img = dish.image_url;
+        if (!img.startsWith('/images/')) img = '/images/' + img.replace(/^\/+/, '');
+        imgHtml = `<img src="${img}" alt="Зображення" style="max-width:300px;display:block;margin-bottom:10px;">`;
+      }
+      box.innerHTML = `<h2>${dish.name}</h2>${imgHtml}<p><b>Калорії:</b> ${dish.calories}</p><p><b>Рецепт:</b> ${dish.recipe}</p>`;
+    };
+
+    renderCategoryButtons();
+  </script>
+</body>
+</html>

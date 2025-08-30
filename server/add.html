@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Додати страву | Food Planner</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    h1 { color: #2c3e50; }
+    .form-group { margin-bottom: 10px; }
+    label { display: block; margin-bottom: 4px; }
+    input, select, textarea { width: 100%; padding: 6px; }
+    button { padding: 8px 16px; background: #27ae60; color: #fff; border: none; cursor: pointer; }
+    .message { margin-top: 20px; color: #27ae60; }
+    .back-link { display: inline-block; margin-bottom: 20px; color: #3498db; text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <h1>Додати страву</h1>
+  <a class="back-link" href="/">← На головну</a>
+  <form id="dishForm">
+    <div class="form-group">
+      <label for="category">Категорія</label>
+      <select id="category" name="category">
+        <option value="breakfasts">Сніданки</option>
+        <option value="lunches">Обіди</option>
+        <option value="dinners">Вечері</option>
+        <option value="snacks">Перекуси</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="name">Назва страви</label>
+      <input type="text" id="name" name="name" required>
+    </div>
+    <div class="form-group">
+      <label for="calories">Калорії</label>
+      <input type="number" id="calories" name="calories" required>
+    </div>
+    <div class="form-group">
+      <label for="recipe">Рецепт</label>
+      <textarea id="recipe" name="recipe" rows="3" required></textarea>
+    </div>
+    <div class="form-group">
+      <label for="image_file">Або завантажте зображення</label>
+      <input type="file" id="image_file" accept="image/*">
+      <img id="preview" src="" style="max-width:200px;display:none;margin-top:10px;">
+    </div>
+    <button type="submit">Додати</button>
+  </form>
+  <div class="message" id="message"></div>
+  <hr style="margin:40px 0;">
+  <h2>Список страв</h2>
+  <div class="form-group">
+    <label for="viewCategory">Категорія для перегляду</label>
+    <select id="viewCategory">
+      <option value="breakfasts">Сніданки</option>
+      <option value="lunches">Обіди</option>
+      <option value="dinners">Вечері</option>
+      <option value="snacks">Перекуси</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label for="dishSelect">Страва</label>
+    <select id="dishSelect"><option value="">Виберіть страву</option></select>
+  </div>
+  <div id="dishDetails" style="display:none;">
+    <form id="editForm">
+      <div class="form-group">
+        <label for="editName">Назва страви</label>
+        <input type="text" id="editName" name="editName" required>
+      </div>
+      <div class="form-group">
+        <label for="editCalories">Калорії</label>
+        <input type="number" id="editCalories" name="editCalories" required>
+      </div>
+      <div class="form-group">
+        <label for="editRecipe">Рецепт</label>
+        <textarea id="editRecipe" name="editRecipe" rows="3" required></textarea>
+      <img id="editImage" src="" alt="Зображення страви" style="max-width:200px;display:none;margin-bottom:10px;">
+      <button type="submit">Зберегти зміни</button>
+      <button type="button" id="deleteBtn" style="background:#e74c3c;margin-left:10px;">Видалити</button>
+    </form>
+    <div class="message" id="editMessage"></div>
+  </div>
+  <script>
+    document.getElementById('dishForm').onsubmit = async function(e) {
+      e.preventDefault();
+      const fileInput = document.getElementById('image_file');
+      let imageUrl = null;
+      if (fileInput.files.length > 0) {
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        const res = await fetch('/upload_image', {
+          method: 'POST',
+          body: formData
+        });
+        const result = await res.json();
+        imageUrl = result.url;
+      }
+      const data = {
+        category: document.getElementById('category').value,
+        name: document.getElementById('name').value,
+        calories: parseInt(document.getElementById('calories').value),
+        recipe: document.getElementById('recipe').value
+      };
+      const res = await fetch('/add_dish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      document.getElementById('message').textContent = result.message || result.detail;
+      if (res.ok) {
+        document.getElementById('dishForm').reset();
+        // Якщо було зображення, оновлюємо image_url для останньої доданої страви
+        if (imageUrl) {
+          // Отримуємо список страв цієї категорії, беремо першу (найновішу)
+          const cat = data.category;
+          const dishesRes = await fetch(`/dishes/${cat}`);
+          const dishes = dishesRes.ok ? await dishesRes.json() : [];
+          if (dishes.length > 0) {
+            const lastId = dishes[0].id;
+            await fetch(`/dishes/${cat}/${lastId}/image`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ image_url: imageUrl })
+            });
+          }
+        }
+      }
+      loadDishes();
+    };
+
+    async function loadDishes() {
+      const category = document.getElementById('viewCategory').value;
+      const res = await fetch(`/dishes/${category}`);
+      const dishes = res.ok ? await res.json() : [];
+      const select = document.getElementById('dishSelect');
+      select.innerHTML = '<option value="">Виберіть страву</option>';
+      dishes.forEach(dish => {
+  select.innerHTML += `<option value="${dish.id}" data-name="${dish.name}" data-calories="${dish.calories}" data-recipe="${dish.recipe}" data-image="${dish.image_url || ''}">${dish.name}</option>`;
+      });
+      document.getElementById('dishDetails').style.display = 'none';
+    }
+
+    document.getElementById('viewCategory').onchange = loadDishes;
+    document.getElementById('dishSelect').onchange = function() {
+      const selected = this.options[this.selectedIndex];
+      if (!selected.value) {
+        document.getElementById('dishDetails').style.display = 'none';
+        document.getElementById('editImage').style.display = 'none';
+        return;
+      }
+      document.getElementById('editName').value = selected.getAttribute('data-name');
+      document.getElementById('editCalories').value = selected.getAttribute('data-calories');
+      document.getElementById('editRecipe').value = selected.getAttribute('data-recipe');
+      let img = selected.getAttribute('data-image');
+      if (img) {
+        if (!img.startsWith('/images/')) img = '/images/' + img.replace(/^\/+/, '');
+        document.getElementById('editImage').src = img;
+        document.getElementById('editImage').style.display = '';
+      } else {
+        document.getElementById('editImage').src = '';
+        document.getElementById('editImage').style.display = 'none';
+      }
+      document.getElementById('dishDetails').style.display = '';
+    };
+
+    document.getElementById('editForm').onsubmit = async function(e) {
+      e.preventDefault();
+      const category = document.getElementById('viewCategory').value;
+      const id = document.getElementById('dishSelect').value;
+      const data = {
+        name: document.getElementById('editName').value,
+        calories: parseInt(document.getElementById('editCalories').value),
+        recipe: document.getElementById('editRecipe').value,
+      };
+      const res = await fetch(`/dishes/${category}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      document.getElementById('editMessage').textContent = result.message || result.detail;
+      loadDishes();
+    };
+
+    document.getElementById('deleteBtn').onclick = async function() {
+      if (!confirm('Ви дійсно хочете видалити страву?')) return;
+      const category = document.getElementById('viewCategory').value;
+      const id = document.getElementById('dishSelect').value;
+      const res = await fetch(`/dishes/${category}/${id}`, { method: 'DELETE' });
+      const result = await res.json();
+      document.getElementById('editMessage').textContent = result.message || result.detail;
+      document.getElementById('dishDetails').style.display = 'none';
+      loadDishes();
+    };
+
+    document.getElementById('image_file').onchange = function(e) {
+    const file = e.target.files[0];
+    const preview = document.getElementById('preview');
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        preview.src = ev.target.result;
+        preview.style.display = '';
+      };
+      reader.readAsDataURL(file);
+    } else {
+      preview.src = '';
+      preview.style.display = 'none';
+    }
+  };
+
+    loadDishes();
+  </script>
+</body>
+</html>

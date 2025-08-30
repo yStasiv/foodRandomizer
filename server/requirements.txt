@@ -1,0 +1,6 @@
+asyncpg
+fastapi
+uvicorn
+
+
+#   F:\Program Files\projects\food_planner\server>python -m uvicorn main:app --reload   

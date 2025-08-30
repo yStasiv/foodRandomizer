@@ -1,0 +1,31 @@
+name: Food Planner CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          pip install fastapi uvicorn
+      - name: Lint main.py
+        run: |
+          python -m py_compile server/main.py
+      # - name: Run tests
+      #   run: |
+      #     pytest
+      # - name: Run FastAPI server (for preview only)
+      #   run: |
+      #     uvicorn server.main:app --host 0.0.0.0 --port 8000
+      #   if: false # Remove 'if: false' to enable server run
